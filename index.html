@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0c0f14" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Corridas" />
@@ -41,146 +41,169 @@
       </div>
     </header>
 
-    <main class="layout">
-      <section class="card card--car" aria-labelledby="car-heading">
-        <h2 id="car-heading" class="card__title">Dados do carro</h2>
-        <p class="card__hint">Usamos isso para estimar custo de combustível e sugerir se o dia compensou.</p>
-        <form id="formCar" class="form-grid">
-          <label class="field">
-            <span class="field__label">Apelido do carro</span>
-            <input type="text" name="apelido" placeholder="Ex.: Civic prata" autocomplete="off" />
-          </label>
-          <label class="field">
-            <span class="field__label">Consumo médio (km/L)</span>
-            <input type="number" name="kmPorLitro" min="0.1" step="0.1" placeholder="12" required />
-          </label>
-          <label class="field">
-            <span class="field__label">Preço do combustível (R$/L)</span>
-            <input type="number" name="precoLitro" min="0" step="0.01" placeholder="5,89" required />
-          </label>
-          <label class="field">
-            <span class="field__label">Custo extra por km (R$/km)</span>
-            <input type="number" name="custoExtraKm" min="0" step="0.01" placeholder="0,15 — pneu, óleo, desgaste" />
-            <span class="field__help">Opcional: estimativa de manutenção / desvalorização por km.</span>
-          </label>
-          <label class="field">
-            <span class="field__label">Meta de lucro líquido por dia (R$)</span>
-            <input type="number" name="metaLucroDia" min="0" step="1" placeholder="200" />
-          </label>
-          <label class="field">
-            <span class="field__label">Meta de lucro líquido por semana (R$)</span>
-            <input type="number" name="metaLucroSemana" min="0" step="1" placeholder="1200" />
-          </label>
-          <div class="form-actions field--full">
-            <button type="submit" class="btn btn--primary">Salvar dados do carro</button>
-          </div>
-        </form>
-      </section>
-
-      <section class="card card--dash" aria-labelledby="dash-heading">
-        <h2 id="dash-heading" class="card__title">Resumo rápido</h2>
-        <p class="card__hint">Semana e mês correntes (segunda a domingo na semana civil).</p>
-        <div class="dash-grid" id="dashGrid"></div>
-        <div class="insight" id="dowInsight"></div>
-      </section>
-
-      <section class="card card--filters" aria-labelledby="filtros-heading">
-        <h2 id="filtros-heading" class="card__title">Filtro e gráfico</h2>
-        <div class="filter-bar">
-          <label class="field field--inline">
-            <span class="field__label">Período do histórico</span>
-            <select id="filterMode" class="input-select">
-              <option value="all">Todos os dias</option>
-              <option value="week">Esta semana</option>
-              <option value="month">Este mês</option>
-              <option value="custom">Intervalo</option>
-            </select>
-          </label>
-          <div class="filter-custom" id="filterCustom" hidden>
-            <label class="field field--inline">
-              <span class="field__label">De</span>
-              <input type="date" id="filterDe" />
-            </label>
-            <label class="field field--inline">
-              <span class="field__label">Até</span>
-              <input type="date" id="filterAte" />
-            </label>
-          </div>
+    <main class="main-area">
+      <div class="panels-wrap">
+        <div class="panel panel--active" id="panel-resumo" role="tabpanel" aria-labelledby="tab-resumo" data-panel="resumo">
+          <section class="card card--dash" aria-labelledby="dash-heading">
+            <h2 id="dash-heading" class="card__title">Resumo rápido</h2>
+            <p class="card__hint">Semana e mês correntes (segunda a domingo na semana civil).</p>
+            <div class="dash-grid" id="dashGrid"></div>
+            <div class="insight" id="dowInsight"></div>
+          </section>
         </div>
-        <div class="chart-block">
-          <div class="chart-block__head">
-            <span class="chart-block__title">Lucro estimado por dia</span>
-            <span class="chart-block__sub" id="chartSubtitle"></span>
-          </div>
-          <div class="chart" id="chartBars" aria-hidden="true"></div>
-          <p class="chart-empty" id="chartEmpty" hidden>Nenhum dia no período selecionado.</p>
-        </div>
-      </section>
 
-      <section class="card card--day" aria-labelledby="day-heading">
-        <h2 id="day-heading" class="card__title">Registrar dia</h2>
-        <p class="card__hint" id="editHint" hidden>Você está editando um dia — salve para aplicar ou cancele.</p>
-        <form id="formDay" class="form-grid">
-          <label class="field">
-            <span class="field__label">Data</span>
-            <input type="date" name="data" required />
-          </label>
-          <label class="field">
-            <span class="field__label">Km rodados no dia</span>
-            <input type="number" name="kmDia" min="0" step="0.1" placeholder="180" required />
-          </label>
-          <label class="field">
-            <span class="field__label">Receita (corridas) R$</span>
-            <input type="number" name="receita" min="0" step="0.01" placeholder="420" required />
-          </label>
-          <label class="field">
-            <span class="field__label">Outras despesas R$</span>
-            <input type="number" name="despesasExtras" min="0" step="0.01" placeholder="pedágio, estacionamento" />
-          </label>
-          <label class="field">
-            <span class="field__label">Horas online (opcional)</span>
-            <input type="number" name="horas" min="0" step="0.25" placeholder="8" />
-          </label>
-          <label class="field field--full">
-            <span class="field__label">Observações</span>
-            <input type="text" name="notas" placeholder="Picos, chuva, promoções…" autocomplete="off" />
-          </label>
-          <div class="form-actions form-actions--split field--full">
-            <button type="submit" class="btn btn--primary" id="btnDaySubmit">Adicionar ao histórico</button>
-            <button type="button" class="btn btn--ghost" id="btnCancelEdit" hidden>Cancelar edição</button>
-          </div>
-        </form>
-      </section>
+        <div class="panel" id="panel-lancar" role="tabpanel" aria-labelledby="tab-lancar" data-panel="lancar">
+          <section class="card card--car" aria-labelledby="car-heading">
+            <h2 id="car-heading" class="card__title">Dados do carro</h2>
+            <p class="card__hint">Usamos isso para estimar custo de combustível e sugerir se o dia compensou.</p>
+            <form id="formCar" class="form-grid">
+              <label class="field">
+                <span class="field__label">Apelido do carro</span>
+                <input type="text" name="apelido" placeholder="Ex.: Civic prata" autocomplete="off" />
+              </label>
+              <label class="field">
+                <span class="field__label">Consumo médio (km/L)</span>
+                <input type="number" name="kmPorLitro" min="0.1" step="0.1" placeholder="12" required />
+              </label>
+              <label class="field">
+                <span class="field__label">Preço do combustível (R$/L)</span>
+                <input type="number" name="precoLitro" min="0" step="0.01" placeholder="5,89" required />
+              </label>
+              <label class="field">
+                <span class="field__label">Custo extra por km (R$/km)</span>
+                <input type="number" name="custoExtraKm" min="0" step="0.01" placeholder="0,15 — pneu, óleo, desgaste" />
+                <span class="field__help">Opcional: estimativa de manutenção / desvalorização por km.</span>
+              </label>
+              <label class="field">
+                <span class="field__label">Meta de lucro líquido por dia (R$)</span>
+                <input type="number" name="metaLucroDia" min="0" step="1" placeholder="200" />
+              </label>
+              <label class="field">
+                <span class="field__label">Meta de lucro líquido por semana (R$)</span>
+                <input type="number" name="metaLucroSemana" min="0" step="1" placeholder="1200" />
+              </label>
+              <div class="form-actions field--full">
+                <button type="submit" class="btn btn--primary">Salvar dados do carro</button>
+              </div>
+            </form>
+          </section>
 
-      <section class="card card--result" id="previewCard" hidden>
-        <h2 class="card__title">Resumo do que você digitou</h2>
-        <div class="metrics" id="previewMetrics"></div>
-        <div class="verdict" id="verdictBox" role="status"></div>
-      </section>
+          <section class="card card--day" aria-labelledby="day-heading">
+            <h2 id="day-heading" class="card__title">Registrar dia</h2>
+            <p class="card__hint" id="editHint" hidden>Você está editando um dia — salve para aplicar ou cancele.</p>
+            <form id="formDay" class="form-grid">
+              <label class="field">
+                <span class="field__label">Data</span>
+                <input type="date" name="data" required />
+              </label>
+              <label class="field">
+                <span class="field__label">Km rodados no dia</span>
+                <input type="number" name="kmDia" min="0" step="0.1" placeholder="180" required />
+              </label>
+              <label class="field">
+                <span class="field__label">Receita (corridas) R$</span>
+                <input type="number" name="receita" min="0" step="0.01" placeholder="420" required />
+              </label>
+              <label class="field">
+                <span class="field__label">Outras despesas R$</span>
+                <input type="number" name="despesasExtras" min="0" step="0.01" placeholder="pedágio, estacionamento" />
+              </label>
+              <label class="field">
+                <span class="field__label">Horas online (opcional)</span>
+                <input type="number" name="horas" min="0" step="0.25" placeholder="8" />
+              </label>
+              <label class="field field--full">
+                <span class="field__label">Observações</span>
+                <input type="text" name="notas" placeholder="Picos, chuva, promoções…" autocomplete="off" />
+              </label>
+              <div class="form-actions form-actions--split field--full">
+                <button type="submit" class="btn btn--primary" id="btnDaySubmit">Adicionar ao histórico</button>
+                <button type="button" class="btn btn--ghost" id="btnCancelEdit" hidden>Cancelar edição</button>
+              </div>
+            </form>
+          </section>
 
-      <section class="card card--list" aria-labelledby="list-heading">
-        <div class="card__row">
-          <h2 id="list-heading" class="card__title">Histórico</h2>
-          <span class="badge" id="entryCount">0 dias</span>
+          <section class="card card--result" id="previewCard" hidden>
+            <h2 class="card__title">Resumo do que você digitou</h2>
+            <div class="metrics" id="previewMetrics"></div>
+            <div class="verdict" id="verdictBox" role="status"></div>
+          </section>
         </div>
-        <div class="table-wrap" id="tableWrap" hidden>
-          <table class="table" id="historyTable">
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Km</th>
-                <th>Receita</th>
-                <th>Lucro est.</th>
-                <th>R$/km</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody id="historyBody"></tbody>
-          </table>
+
+        <div class="panel" id="panel-historico" role="tabpanel" aria-labelledby="tab-historico" data-panel="historico">
+          <section class="card card--filters" aria-labelledby="filtros-heading">
+            <h2 id="filtros-heading" class="card__title">Filtro e gráfico</h2>
+            <div class="filter-bar">
+              <label class="field field--inline">
+                <span class="field__label">Período do histórico</span>
+                <select id="filterMode" class="input-select">
+                  <option value="all">Todos os dias</option>
+                  <option value="week">Esta semana</option>
+                  <option value="month">Este mês</option>
+                  <option value="custom">Intervalo</option>
+                </select>
+              </label>
+              <div class="filter-custom" id="filterCustom" hidden>
+                <label class="field field--inline">
+                  <span class="field__label">De</span>
+                  <input type="date" id="filterDe" />
+                </label>
+                <label class="field field--inline">
+                  <span class="field__label">Até</span>
+                  <input type="date" id="filterAte" />
+                </label>
+              </div>
+            </div>
+            <div class="chart-block">
+              <div class="chart-block__head">
+                <span class="chart-block__title">Lucro estimado por dia</span>
+                <span class="chart-block__sub" id="chartSubtitle"></span>
+              </div>
+              <div class="chart" id="chartBars" aria-hidden="true"></div>
+              <p class="chart-empty" id="chartEmpty" hidden>Nenhum dia no período selecionado.</p>
+            </div>
+          </section>
+
+          <section class="card card--list" aria-labelledby="list-heading">
+            <div class="card__row">
+              <h2 id="list-heading" class="card__title">Histórico</h2>
+              <span class="badge" id="entryCount">0 dias</span>
+            </div>
+            <div class="table-wrap" id="tableWrap" hidden>
+              <table class="table" id="historyTable">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Km</th>
+                    <th>Receita</th>
+                    <th>Lucro est.</th>
+                    <th>R$/km</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+              </table>
+            </div>
+            <p class="empty" id="filterEmpty" hidden>Nenhum registro no período selecionado.</p>
+            <p class="empty" id="emptyState">Nenhum dia registrado ainda. Preencha o carro e adicione seu primeiro dia.</p>
+          </section>
         </div>
-        <p class="empty" id="filterEmpty" hidden>Nenhum registro no período selecionado.</p>
-        <p class="empty" id="emptyState">Nenhum dia registrado ainda. Preencha o carro e adicione seu primeiro dia.</p>
-      </section>
+      </div>
+
+      <nav class="tabbar" id="tabbar" role="tablist" aria-label="Seções do app">
+        <button type="button" class="tabbar__btn tab--active" id="tab-resumo" role="tab" aria-selected="true" aria-controls="panel-resumo" data-tab="resumo">
+          <span class="tabbar__icon" aria-hidden="true">◉</span>
+          <span class="tabbar__label">Resumo</span>
+        </button>
+        <button type="button" class="tabbar__btn" id="tab-lancar" role="tab" aria-selected="false" aria-controls="panel-lancar" data-tab="lancar">
+          <span class="tabbar__icon" aria-hidden="true">✎</span>
+          <span class="tabbar__label">Lançar</span>
+        </button>
+        <button type="button" class="tabbar__btn" id="tab-historico" role="tab" aria-selected="false" aria-controls="panel-historico" data-tab="historico">
+          <span class="tabbar__icon" aria-hidden="true">≡</span>
+          <span class="tabbar__label">Histórico</span>
+        </button>
+      </nav>
     </main>
 
     <footer class="footer">
