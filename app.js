@@ -333,13 +333,25 @@
   const panelResumo = $("#panel-resumo");
   const panelLancar = $("#panel-lancar");
   const panelHistorico = $("#panel-historico");
+  const panelAjustes = $("#panel-ajustes");
   const tabbarEl = $("#tabbar");
   const tabBtns = tabbarEl ? Array.from(tabbarEl.querySelectorAll("[data-tab]")) : [];
   const panelsByKey = {
     resumo: panelResumo,
     lancar: panelLancar,
     historico: panelHistorico,
+    ajustes: panelAjustes,
   };
+  const carSection = $("#carSection");
+  const carSummaryLine = $("#carSummaryLine");
+  const chartDetails = $("#chartDetails");
+  const dayExtra = $("#dayExtra");
+  const btnCarExpand = $("#btnCarExpand");
+  const btnDupLast = $("#btnDupLast");
+  const btnBackupExport = $("#btnBackupExport");
+  const btnBackupImport = $("#btnBackupImport");
+
+  const CAR_COLLAPSED_LS = "ccCarCollapsed";
 
   function showToast(message) {
     if (!toastEl) return;
@@ -366,6 +378,41 @@
       c.metaLucroSemana !== undefined && c.metaLucroSemana !== null
         ? c.metaLucroSemana
         : "";
+    updateCarCollapseUi();
+  }
+
+  function carHasMinimum(car) {
+    return (car.kmPorLitro || 0) > 0 && (car.precoLitro || 0) > 0;
+  }
+
+  function buildCarSummaryLine(car) {
+    const name = (car.apelido || "").trim() || "Seu carro";
+    let s = `${name} · ${car.kmPorLitro} km/L · combustível ${money(car.precoLitro)}/L`;
+    if ((car.metaLucroDia || 0) > 0) s += ` · meta/dia ${money(car.metaLucroDia)}`;
+    return s;
+  }
+
+  function updateCarCollapseUi() {
+    if (!carSection) return;
+    if (isWideLayout()) {
+      carSection.classList.remove("car-card--collapsed");
+      return;
+    }
+    let collapsed = false;
+    try {
+      collapsed = localStorage.getItem(CAR_COLLAPSED_LS) === "1";
+    } catch (_) {}
+    const showCollapsed = collapsed && carHasMinimum(state.car);
+    carSection.classList.toggle("car-card--collapsed", showCollapsed);
+    if (carSummaryLine && showCollapsed) {
+      carSummaryLine.textContent = buildCarSummaryLine(state.car);
+    }
+  }
+
+  function syncCollapsibleForViewport() {
+    const wide = isWideLayout();
+    if (chartDetails) chartDetails.open = wide;
+    if (dayExtra) dayExtra.open = wide;
   }
 
   function setTodayDefault() {
@@ -585,6 +632,14 @@
       formDay.despesasExtras.value = entry.despesasExtras || "";
       formDay.horas.value = entry.horas || "";
       formDay.notas.value = entry.notas || "";
+      if (
+        dayExtra &&
+        (parseNum(entry.despesasExtras) > 0 ||
+          parseNum(entry.horas) > 0 ||
+          (entry.notas && String(entry.notas).trim()))
+      ) {
+        dayExtra.open = true;
+      }
     } else if (!on) {
       formDay.kmDia.value = "";
       formDay.receita.value = "";
@@ -659,23 +714,25 @@
       Object.values(panelsByKey).forEach((el) => {
         if (el) el.classList.add("panel--active");
       });
-      return;
+    } else {
+      let tab = "resumo";
+      try {
+        tab = sessionStorage.getItem("ccTab") || "resumo";
+      } catch (_) {}
+      if (!panelsByKey[tab]) tab = "resumo";
+      Object.keys(panelsByKey).forEach((key) => {
+        const el = panelsByKey[key];
+        if (el) el.classList.toggle("panel--active", key === tab);
+      });
+      tabBtns.forEach((btn) => {
+        const t = btn.getAttribute("data-tab");
+        const active = t === tab;
+        btn.classList.toggle("tab--active", active);
+        btn.setAttribute("aria-selected", active ? "true" : "false");
+      });
     }
-    let tab = "resumo";
-    try {
-      tab = sessionStorage.getItem("ccTab") || "resumo";
-    } catch (_) {}
-    if (!panelsByKey[tab]) tab = "resumo";
-    Object.keys(panelsByKey).forEach((key) => {
-      const el = panelsByKey[key];
-      if (el) el.classList.toggle("panel--active", key === tab);
-    });
-    tabBtns.forEach((btn) => {
-      const t = btn.getAttribute("data-tab");
-      const active = t === tab;
-      btn.classList.toggle("tab--active", active);
-      btn.setAttribute("aria-selected", active ? "true" : "false");
-    });
+    syncCollapsibleForViewport();
+    updateCarCollapseUi();
   }
 
   function refreshUI() {
@@ -695,6 +752,9 @@
       metaLucroSemana: parseNum(formCar.metaLucroSemana.value),
     };
     saveState(state);
+    try {
+      localStorage.setItem(CAR_COLLAPSED_LS, "1");
+    } catch (_) {}
     fillCarForm();
     refreshUI();
     showToast("Dados do carro salvos.");
@@ -720,7 +780,8 @@
     const wasEditing = !!editingId;
     const car = mergeCarFromForms();
     if (!car) {
-      alert("Informe consumo (km/L) e preço do combustível (R$/L) nos dados do carro.");
+      showToast("Informe consumo e preço do litro na aba Ajustes.");
+      setTabMobile("ajustes");
       return;
     }
 
@@ -756,6 +817,9 @@
     showToast(
       wasEditing ? "Dia atualizado no histórico." : "Dia adicionado ao histórico."
     );
+    try {
+      navigator.vibrate(15);
+    } catch (_) {}
   });
 
   btnCancelEdit.addEventListener("click", () => {
@@ -837,6 +901,9 @@
           car: { ...defaultCar(), ...data.car },
           entries: data.entries,
         };
+        try {
+          localStorage.removeItem(CAR_COLLAPSED_LS);
+        } catch (_) {}
         saveState(state);
         fillCarForm();
         setEditingMode(false);
@@ -848,6 +915,45 @@
       }
     };
     reader.readAsText(file);
+  });
+
+  btnCarExpand?.addEventListener("click", () => {
+    try {
+      localStorage.setItem(CAR_COLLAPSED_LS, "0");
+    } catch (_) {}
+    updateCarCollapseUi();
+  });
+
+  btnBackupExport?.addEventListener("click", () => {
+    btnExport?.click();
+  });
+
+  btnBackupImport?.addEventListener("click", () => {
+    importFile?.click();
+  });
+
+  btnDupLast?.addEventListener("click", () => {
+    if (!state.entries.length) {
+      showToast("Ainda não há lançamentos para copiar.");
+      return;
+    }
+    const sorted = [...state.entries].sort((a, b) => (a.data < b.data ? 1 : -1));
+    const last = sorted[0];
+    setTodayDefault();
+    formDay.kmDia.value = last.kmDia;
+    formDay.receita.value = last.receita;
+    formDay.despesasExtras.value = last.despesasExtras || "";
+    formDay.horas.value = last.horas || "";
+    formDay.notas.value = last.notas || "";
+    if (
+      dayExtra &&
+      (parseNum(last.despesasExtras) > 0 ||
+        parseNum(last.horas) > 0 ||
+        (last.notas && String(last.notas).trim()))
+    ) {
+      dayExtra.open = true;
+    }
+    showToast("Preenchido com o último lançamento. Ajuste a data e os valores de hoje.");
   });
 
   tabBtns.forEach((btn) => {
