@@ -45,7 +45,17 @@ body {
 .app {
   max-width: 920px;
   margin: 0 auto;
-  padding: 1.25rem 1rem 2.5rem;
+  padding: 1rem 0.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+@media (max-width: 959px) {
+  .app {
+    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 .header {
@@ -95,10 +105,98 @@ body {
   flex-wrap: wrap;
 }
 
-.layout {
+.main-area {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+}
+
+.panels-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.panel {
+  display: none;
+  flex-direction: column;
   gap: 1rem;
+}
+
+.panel--active {
+  display: flex;
+}
+
+@media (min-width: 960px) {
+  .panels-wrap {
+    gap: 1rem;
+  }
+
+  .panel {
+    display: flex !important;
+  }
+
+  .tabbar {
+    display: none !important;
+  }
+}
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  display: flex;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 0.35rem 0.5rem calc(0.4rem + env(safe-area-inset-bottom, 0px));
+  gap: 0.25rem;
+  background: rgba(18, 23, 34, 0.92);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.tabbar__btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  min-height: 48px;
+  padding: 0.25rem 0.35rem;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tabbar__btn:hover {
+  color: var(--text);
+}
+
+.tabbar__btn.tab--active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.tabbar__icon {
+  font-size: 1.1rem;
+  line-height: 1;
+  opacity: 0.95;
+}
+
+.tabbar__label {
+  letter-spacing: 0.02em;
 }
 
 .card {
@@ -649,10 +747,28 @@ input:focus {
 
 @media (max-width: 520px) {
   .header__title {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
+  }
+
+  .header__subtitle {
+    display: none;
+  }
+
+  .header__actions .btn {
+    padding: 0.5rem 0.55rem;
+    font-size: 0.78rem;
   }
 
   .card {
     padding: 1rem;
+  }
+
+  .table {
+    font-size: 0.8rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.45rem 0.4rem;
   }
 }
