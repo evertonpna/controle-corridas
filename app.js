@@ -330,6 +330,16 @@
   const btnInstallDismiss = $("#btnInstallDismiss");
   const iosPwaHint = $("#iosPwaHint");
   const updateHint = $("#updateHint");
+  const panelResumo = $("#panel-resumo");
+  const panelLancar = $("#panel-lancar");
+  const panelHistorico = $("#panel-historico");
+  const tabbarEl = $("#tabbar");
+  const tabBtns = tabbarEl ? Array.from(tabbarEl.querySelectorAll("[data-tab]")) : [];
+  const panelsByKey = {
+    resumo: panelResumo,
+    lancar: panelLancar,
+    historico: panelHistorico,
+  };
 
   function showToast(message) {
     if (!toastEl) return;
@@ -622,6 +632,52 @@
     if (tableWrap) tableWrap.hidden = total === 0;
   }
 
+  function isWideLayout() {
+    return window.matchMedia("(min-width: 960px)").matches;
+  }
+
+  function setTabMobile(name) {
+    if (isWideLayout() || !panelsByKey[name]) return;
+    Object.keys(panelsByKey).forEach((key) => {
+      const el = panelsByKey[key];
+      if (el) el.classList.toggle("panel--active", key === name);
+    });
+    tabBtns.forEach((btn) => {
+      const t = btn.getAttribute("data-tab");
+      const active = t === name;
+      btn.classList.toggle("tab--active", active);
+      btn.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    try {
+      sessionStorage.setItem("ccTab", name);
+    } catch (_) {}
+    window.scrollTo(0, 0);
+  }
+
+  function applyLayoutForViewport() {
+    if (isWideLayout()) {
+      Object.values(panelsByKey).forEach((el) => {
+        if (el) el.classList.add("panel--active");
+      });
+      return;
+    }
+    let tab = "resumo";
+    try {
+      tab = sessionStorage.getItem("ccTab") || "resumo";
+    } catch (_) {}
+    if (!panelsByKey[tab]) tab = "resumo";
+    Object.keys(panelsByKey).forEach((key) => {
+      const el = panelsByKey[key];
+      if (el) el.classList.toggle("panel--active", key === tab);
+    });
+    tabBtns.forEach((btn) => {
+      const t = btn.getAttribute("data-tab");
+      const active = t === tab;
+      btn.classList.toggle("tab--active", active);
+      btn.setAttribute("aria-selected", active ? "true" : "false");
+    });
+  }
+
   function refreshUI() {
     renderDashboard();
     renderChart();
@@ -726,6 +782,7 @@
       if (!entry) return;
       setEditingMode(true, entry);
       previewCard.hidden = true;
+      setTabMobile("lancar");
       window.scrollTo({ top: formDay.offsetTop - 24, behavior: "smooth" });
     }
   });
@@ -793,9 +850,23 @@
     reader.readAsText(file);
   });
 
+  tabBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const name = btn.getAttribute("data-tab");
+      if (name) setTabMobile(name);
+    });
+  });
+
+  let resizeTabTimer;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTabTimer);
+    resizeTabTimer = setTimeout(applyLayoutForViewport, 150);
+  });
+
   fillCarForm();
   setTodayDefault();
   syncFilterInputsFromState();
+  applyLayoutForViewport();
   refreshUI();
 
   window.addEventListener("beforeinstallprompt", (e) => {
