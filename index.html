@@ -34,7 +34,7 @@
           <p class="header__subtitle">Seu dia no volante, números claros</p>
         </div>
       </div>
-      <div class="header__actions">
+      <div class="header__actions header__actions--desktop">
         <button type="button" class="btn btn--ghost" id="btnExport" title="Salvar backup">Exportar</button>
         <button type="button" class="btn btn--ghost" id="btnImport" title="Restaurar backup">Importar</button>
         <input type="file" id="importFile" accept="application/json" hidden />
@@ -53,44 +53,15 @@
         </div>
 
         <div class="panel" id="panel-lancar" role="tabpanel" aria-labelledby="tab-lancar" data-panel="lancar">
-          <section class="card card--car" aria-labelledby="car-heading">
-            <h2 id="car-heading" class="card__title">Dados do carro</h2>
-            <p class="card__hint">Usamos isso para estimar custo de combustível e sugerir se o dia compensou.</p>
-            <form id="formCar" class="form-grid">
-              <label class="field">
-                <span class="field__label">Apelido do carro</span>
-                <input type="text" name="apelido" placeholder="Ex.: Civic prata" autocomplete="off" />
-              </label>
-              <label class="field">
-                <span class="field__label">Consumo médio (km/L)</span>
-                <input type="number" name="kmPorLitro" min="0.1" step="0.1" placeholder="12" required />
-              </label>
-              <label class="field">
-                <span class="field__label">Preço do combustível (R$/L)</span>
-                <input type="number" name="precoLitro" min="0" step="0.01" placeholder="5,89" required />
-              </label>
-              <label class="field">
-                <span class="field__label">Custo extra por km (R$/km)</span>
-                <input type="number" name="custoExtraKm" min="0" step="0.01" placeholder="0,15 — pneu, óleo, desgaste" />
-                <span class="field__help">Opcional: estimativa de manutenção / desvalorização por km.</span>
-              </label>
-              <label class="field">
-                <span class="field__label">Meta de lucro líquido por dia (R$)</span>
-                <input type="number" name="metaLucroDia" min="0" step="1" placeholder="200" />
-              </label>
-              <label class="field">
-                <span class="field__label">Meta de lucro líquido por semana (R$)</span>
-                <input type="number" name="metaLucroSemana" min="0" step="1" placeholder="1200" />
-              </label>
-              <div class="form-actions field--full">
-                <button type="submit" class="btn btn--primary">Salvar dados do carro</button>
-              </div>
-            </form>
-          </section>
-
           <section class="card card--day" aria-labelledby="day-heading">
-            <h2 id="day-heading" class="card__title">Registrar dia</h2>
+            <div class="card__title-row">
+              <h2 id="day-heading" class="card__title">Registrar dia</h2>
+              <button type="button" class="btn btn--ghost btn--small" id="btnDupLast" title="Copia km, receita e extras do último lançamento">
+                Último lançamento
+              </button>
+            </div>
             <p class="card__hint" id="editHint" hidden>Você está editando um dia — salve para aplicar ou cancele.</p>
+            <p class="card__hint card__hint--short">Data, km e receita são o essencial. O restante fica em “Opcional”.</p>
             <form id="formDay" class="form-grid">
               <label class="field">
                 <span class="field__label">Data</span>
@@ -104,18 +75,23 @@
                 <span class="field__label">Receita (corridas) R$</span>
                 <input type="number" name="receita" min="0" step="0.01" placeholder="420" required />
               </label>
-              <label class="field">
-                <span class="field__label">Outras despesas R$</span>
-                <input type="number" name="despesasExtras" min="0" step="0.01" placeholder="pedágio, estacionamento" />
-              </label>
-              <label class="field">
-                <span class="field__label">Horas online (opcional)</span>
-                <input type="number" name="horas" min="0" step="0.25" placeholder="8" />
-              </label>
-              <label class="field field--full">
-                <span class="field__label">Observações</span>
-                <input type="text" name="notas" placeholder="Picos, chuva, promoções…" autocomplete="off" />
-              </label>
+              <details class="day-extra" id="dayExtra">
+                <summary class="day-extra__summary">Opcional: despesas, horas e observações</summary>
+                <div class="day-extra__grid form-grid">
+                  <label class="field field--full">
+                    <span class="field__label">Outras despesas R$</span>
+                    <input type="number" name="despesasExtras" min="0" step="0.01" placeholder="pedágio, estacionamento" />
+                  </label>
+                  <label class="field">
+                    <span class="field__label">Horas online</span>
+                    <input type="number" name="horas" min="0" step="0.25" placeholder="8" />
+                  </label>
+                  <label class="field field--full">
+                    <span class="field__label">Observações</span>
+                    <input type="text" name="notas" placeholder="Picos, chuva, promoções…" autocomplete="off" />
+                  </label>
+                </div>
+              </details>
               <div class="form-actions form-actions--split field--full">
                 <button type="submit" class="btn btn--primary" id="btnDaySubmit">Adicionar ao histórico</button>
                 <button type="button" class="btn btn--ghost" id="btnCancelEdit" hidden>Cancelar edição</button>
@@ -132,10 +108,11 @@
 
         <div class="panel" id="panel-historico" role="tabpanel" aria-labelledby="tab-historico" data-panel="historico">
           <section class="card card--filters" aria-labelledby="filtros-heading">
-            <h2 id="filtros-heading" class="card__title">Filtro e gráfico</h2>
+            <h2 id="filtros-heading" class="card__title">Histórico e filtros</h2>
+            <p class="card__hint card__hint--short">Filtre o período; o gráfico fica recolhido no celular para rolar menos.</p>
             <div class="filter-bar">
               <label class="field field--inline">
-                <span class="field__label">Período do histórico</span>
+                <span class="field__label">Período</span>
                 <select id="filterMode" class="input-select">
                   <option value="all">Todos os dias</option>
                   <option value="week">Esta semana</option>
@@ -154,14 +131,19 @@
                 </label>
               </div>
             </div>
-            <div class="chart-block">
-              <div class="chart-block__head">
-                <span class="chart-block__title">Lucro estimado por dia</span>
-                <span class="chart-block__sub" id="chartSubtitle"></span>
+            <details class="chart-details" id="chartDetails">
+              <summary class="chart-details__summary">Gráfico de lucro por dia</summary>
+              <div class="chart-details__body">
+                <div class="chart-block">
+                  <div class="chart-block__head">
+                    <span class="chart-block__title">Barras = lucro estimado</span>
+                    <span class="chart-block__sub" id="chartSubtitle"></span>
+                  </div>
+                  <div class="chart" id="chartBars" aria-hidden="true"></div>
+                  <p class="chart-empty" id="chartEmpty" hidden>Nenhum dia no período selecionado.</p>
+                </div>
               </div>
-              <div class="chart" id="chartBars" aria-hidden="true"></div>
-              <p class="chart-empty" id="chartEmpty" hidden>Nenhum dia no período selecionado.</p>
-            </div>
+            </details>
           </section>
 
           <section class="card card--list" aria-labelledby="list-heading">
@@ -185,12 +167,64 @@
               </table>
             </div>
             <p class="empty" id="filterEmpty" hidden>Nenhum registro no período selecionado.</p>
-            <p class="empty" id="emptyState">Nenhum dia registrado ainda. Preencha o carro e adicione seu primeiro dia.</p>
+            <p class="empty" id="emptyState">Nenhum dia registrado ainda. Use a aba <strong>Lançar</strong> e depois veja aqui o histórico.</p>
+          </section>
+        </div>
+
+        <div class="panel" id="panel-ajustes" role="tabpanel" aria-labelledby="tab-ajustes" data-panel="ajustes">
+          <section class="card card--car" id="carSection" aria-labelledby="car-heading">
+            <h2 id="car-heading" class="card__title card__title--accent">Dados do carro</h2>
+            <div class="car-collapsed" id="carCollapsedBar">
+              <p class="car-collapsed__text" id="carSummaryLine"></p>
+              <button type="button" class="btn btn--ghost btn--small" id="btnCarExpand">Editar</button>
+            </div>
+            <div class="car-expanded" id="carExpandedBody">
+              <p class="card__hint">Consumo e preço do litro alimentam o custo de combustível. Metas ajudam nas sugestões de “dia bom” ou “fraco”.</p>
+              <form id="formCar" class="form-grid">
+                <label class="field">
+                  <span class="field__label">Apelido do carro</span>
+                  <input type="text" name="apelido" placeholder="Ex.: Civic prata" autocomplete="off" />
+                </label>
+                <label class="field">
+                  <span class="field__label">Consumo médio (km/L)</span>
+                  <input type="number" name="kmPorLitro" min="0.1" step="0.1" placeholder="12" required />
+                </label>
+                <label class="field">
+                  <span class="field__label">Preço do combustível (R$/L)</span>
+                  <input type="number" name="precoLitro" min="0" step="0.01" placeholder="5,89" required />
+                </label>
+                <label class="field">
+                  <span class="field__label">Custo extra por km (R$/km)</span>
+                  <input type="number" name="custoExtraKm" min="0" step="0.01" placeholder="0,15 — pneu, óleo, desgaste" />
+                  <span class="field__help">Opcional: manutenção / desvalorização por km.</span>
+                </label>
+                <label class="field">
+                  <span class="field__label">Meta lucro / dia (R$)</span>
+                  <input type="number" name="metaLucroDia" min="0" step="1" placeholder="200" />
+                </label>
+                <label class="field">
+                  <span class="field__label">Meta lucro / semana (R$)</span>
+                  <input type="number" name="metaLucroSemana" min="0" step="1" placeholder="1200" />
+                </label>
+                <div class="form-actions field--full">
+                  <button type="submit" class="btn btn--primary">Salvar dados do carro</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section class="card card--backup" aria-labelledby="backup-heading">
+            <h2 id="backup-heading" class="card__title">Backup</h2>
+            <p class="card__hint card__hint--short">No celular use aqui; no computador os mesmos botões ficam no topo.</p>
+            <div class="backup-row">
+              <button type="button" class="btn btn--ghost" id="btnBackupExport">Exportar JSON</button>
+              <button type="button" class="btn btn--ghost" id="btnBackupImport">Importar JSON</button>
+            </div>
           </section>
         </div>
       </div>
 
-      <nav class="tabbar" id="tabbar" role="tablist" aria-label="Seções do app">
+      <nav class="tabbar tabbar--4" id="tabbar" role="tablist" aria-label="Seções do app">
         <button type="button" class="tabbar__btn tab--active" id="tab-resumo" role="tab" aria-selected="true" aria-controls="panel-resumo" data-tab="resumo">
           <span class="tabbar__icon" aria-hidden="true">◉</span>
           <span class="tabbar__label">Resumo</span>
@@ -203,11 +237,15 @@
           <span class="tabbar__icon" aria-hidden="true">≡</span>
           <span class="tabbar__label">Histórico</span>
         </button>
+        <button type="button" class="tabbar__btn" id="tab-ajustes" role="tab" aria-selected="false" aria-controls="panel-ajustes" data-tab="ajustes">
+          <span class="tabbar__icon" aria-hidden="true">⚙</span>
+          <span class="tabbar__label">Ajustes</span>
+        </button>
       </nav>
     </main>
 
     <footer class="footer">
-      <p>Dados salvos só neste navegador. Use Exportar para backup.</p>
+      <p>Dados salvos neste aparelho. No celular: backup na aba <strong>Ajustes</strong>; no PC: botões Exportar/Importar no topo.</p>
       <p class="footer__hint" id="iosPwaHint" hidden>
         No iPhone: Safari → <strong>Compartilhar</strong> → <strong>Adicionar à Tela de Início</strong>.
       </p>
