@@ -1,5 +1,5 @@
 /* Cache bust: altere VERSION ao publicar atualização importante */
-const VERSION = "2026-05-14-1";
+const VERSION = "2.0";
 const CACHE = `controle-corridas-${VERSION}`;
 
 const PRECACHE_URLS = [
